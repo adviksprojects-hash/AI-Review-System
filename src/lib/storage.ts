@@ -4,15 +4,17 @@ import { PrismaClient } from '@prisma/client';
 import { Business, CreateBusinessInput, UpdateBusinessInput } from './types';
 import { nanoid } from 'nanoid';
 
-// Global Prisma instance for Neon DB
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
-  });
+// Lazy Global Prisma instance for Neon DB
+const globalForPrisma = global as unknown as { prisma?: PrismaClient };
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+export function getPrisma(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+    });
+  }
+  return globalForPrisma.prisma;
+}
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DATA_FILE = path.join(DATA_DIR, 'businesses.json');
@@ -107,7 +109,7 @@ const isNeonDbConfigured = () => {
 export async function getAllBusinesses(): Promise<Business[]> {
   if (isNeonDbConfigured()) {
     try {
-      const records = await prisma.business.findMany({
+      const records = await getPrisma().business.findMany({
         orderBy: { createdAt: 'desc' },
       });
       return records.map((r) => ({
@@ -139,7 +141,7 @@ export async function getBusinessByIdOrSlug(identifier: string): Promise<Busines
 
   if (isNeonDbConfigured()) {
     try {
-      const r = await prisma.business.findFirst({
+      const r = await getPrisma().business.findFirst({
         where: {
           OR: [{ id: identifier }, { slug: identifier }],
         },
@@ -181,7 +183,7 @@ export async function createBusiness(input: CreateBusinessInput): Promise<Busine
 
   if (isNeonDbConfigured()) {
     try {
-      const created = await prisma.business.create({
+      const created = await getPrisma().business.create({
         data: {
           slug,
           name: input.name.trim(),
@@ -252,7 +254,7 @@ export async function updateBusiness(
 
   if (isNeonDbConfigured()) {
     try {
-      const updated = await prisma.business.update({
+      const updated = await getPrisma().business.update({
         where: { id },
         data: {
           ...(input.name !== undefined ? { name: input.name.trim() } : {}),
@@ -313,7 +315,7 @@ export async function updateBusiness(
 export async function deleteBusiness(id: string): Promise<boolean> {
   if (isNeonDbConfigured()) {
     try {
-      await prisma.business.delete({ where: { id } });
+      await getPrisma().business.delete({ where: { id } });
       return true;
     } catch (error) {
       console.warn('Neon DB delete error, falling back to local file store:', error);

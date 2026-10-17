@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getBusinessByIdOrSlug, updateBusiness, deleteBusiness } from '@/lib/storage';
 
+export const dynamic = 'force-dynamic';
+
 interface RouteContext {
   params: {
     id: string;
