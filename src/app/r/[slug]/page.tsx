@@ -71,14 +71,17 @@ export default function ReviewFlowPage() {
     setGenerating(true);
     setCopied(false);
     try {
+      const dynamicSeed = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const res = await fetch('/api/reviews/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify({
           businessId: targetBusiness.id,
           rating: targetRating,
           language: targetLang,
           aspects,
+          seed: dynamicSeed,
         }),
       });
       const json = await res.json();

@@ -6,7 +6,7 @@ import { SupportedLanguage } from '@/lib/types';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { businessId, rating, language, aspects } = body;
+    const { businessId, rating, language, aspects, seed } = body;
 
     if (!businessId) {
       return NextResponse.json(
@@ -33,19 +33,29 @@ export async function POST(request: Request) {
       rating: validRating,
       language: validLang,
       aspects: Array.isArray(aspects) ? aspects : [],
+      seed,
     });
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        options,
-        businessName: business.name,
-        placeId: business.placeId,
-        googleReviewUrl: business.googleReviewUrl,
-        rating: validRating,
-        language: validLang,
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          options,
+          businessName: business.name,
+          placeId: business.placeId,
+          googleReviewUrl: business.googleReviewUrl,
+          rating: validRating,
+          language: validLang,
+        },
       },
-    });
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error in review generation API:', error);
     return NextResponse.json(
