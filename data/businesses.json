@@ -1,0 +1,80 @@
+[
+  {
+    "id": "biz_1W8kJplOtj",
+    "slug": "chitale-bandhu-mithaiwale-nbt6h",
+    "name": "Chitale Bandhu Mithaiwale",
+    "placeId": "ChIJChitale12345PuneTest",
+    "category": "Sweets & Snacks",
+    "city": "Pune",
+    "keywords": [
+      "bakardi",
+      "mango burfi",
+      "authentic taste",
+      "fresh sweets"
+    ],
+    "googleReviewUrl": "https://search.google.com/local/writereview?placeid=ChIJChitale12345PuneTest",
+    "geminiApiKey": "AIzaSy_CUSTOM_TEST_KEY_FOR_CHITALE",
+    "isActive": true,
+    "createdAt": "2026-10-17T10:42:33.172Z",
+    "updatedAt": "2026-10-17T10:42:33.174Z"
+  },
+  {
+    "id": "biz_jZro27rrOn",
+    "slug": "sai-auto-garage-car-spa-mdsus",
+    "name": "Sai Premium Auto Care & Detailing",
+    "placeId": "ChIJzz12345AbcDEfGhIjKlMnOp",
+    "category": "Automobile Care & Service",
+    "city": "Nashik Road",
+    "keywords": [
+      "ceramic coating",
+      "water wash",
+      "expert mechanic"
+    ],
+    "googleReviewUrl": "https://search.google.com/local/writereview?placeid=ChIJzz12345AbcDEfGhIjKlMnOp",
+    "customPrompt": "Highlight quick delivery and authentic engine oil",
+    "isActive": true,
+    "createdAt": "2026-10-17T10:21:59.496Z",
+    "updatedAt": "2026-10-17T10:22:11.463Z"
+  },
+  {
+    "id": "biz_sample_1",
+    "slug": "shree-krishna-grand-pune",
+    "name": "Shree Krishna Grand Hotel & Pure Veg Restaurant",
+    "placeId": "ChIJN1t_tDeuEmsRUsoyG83frY4",
+    "category": "Restaurant & Dining",
+    "city": "Pune",
+    "keywords": [
+      "delicious food",
+      "authentic taste",
+      "fast service",
+      "clean ambiance",
+      "family friendly",
+      "hygienic kitchen"
+    ],
+    "googleReviewUrl": "https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4",
+    "customPrompt": "Focus on authentic Maharashtrian dishes, polite staff, and family dining comfort.",
+    "isActive": true,
+    "createdAt": "2026-10-17T10:20:51.063Z",
+    "updatedAt": "2026-10-17T10:20:51.064Z"
+  },
+  {
+    "id": "biz_sample_2",
+    "slug": "dr-patil-dental-care-mumbai",
+    "name": "Dr. Patil Multi-Speciality Dental Clinic",
+    "placeId": "ChIJd_6q_UDeuEmsRUsoyG83frY1",
+    "category": "Dental Clinic & Healthcare",
+    "city": "Mumbai",
+    "keywords": [
+      "painless treatment",
+      "modern clinic",
+      "caring doctor",
+      "affordable pricing",
+      "clean and sanitized"
+    ],
+    "googleReviewUrl": "https://search.google.com/local/writereview?placeid=ChIJd_6q_UDeuEmsRUsoyG83frY1",
+    "customPrompt": "Highlight gentle and painless procedures, high sterilization standards, and clear consultation.",
+    "isActive": true,
+    "createdAt": "2026-10-17T10:20:51.064Z",
+    "updatedAt": "2026-10-17T10:20:51.064Z"
+  }
+]

@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Business {
+  id              String      @id @default(cuid())
+  slug            String      @unique
+  name            String
+  placeId         String
+  category        String
+  city            String
+  keywords        String
+  googleReviewUrl String?
+  customPrompt    String?
+  geminiApiKey    String?
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  reviewLogs      ReviewLog[]
+
+  @@index([slug])
+  @@index([placeId])
+}
+
+model ReviewLog {
+  id             String   @id @default(cuid())
+  businessId     String
+  business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  rating         Int
+  language       String
+  selectedReview String?  @db.Text
+  copied         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  @@index([businessId])
+}
