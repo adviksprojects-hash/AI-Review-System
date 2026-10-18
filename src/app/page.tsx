@@ -22,12 +22,15 @@ import {
   Download,
   Search,
   Building,
+  UtensilsCrossed,
 } from 'lucide-react';
 import { Business, CreateBusinessInput, UpdateBusinessInput } from '@/lib/types';
 import PrintableStandee from '@/components/PrintableStandee';
+import MenuSection from '@/components/MenuSection';
 import { generateQrDataUrl } from '@/lib/qrcode';
 
 export default function AdminDashboardPage() {
+  const [activeTab, setActiveTab] = useState<'reviews' | 'menus'>('reviews');
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -270,22 +273,54 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleOpenAdd}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md shadow-blue-500/20 transition transform active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add New Business</span>
-            </button>
+          <div className="flex items-center gap-2">
+            {/* Section Switcher Tabs */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition ${
+                  activeTab === 'reviews'
+                    ? 'bg-white text-blue-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                <span>AI Reviews</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('menus')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition ${
+                  activeTab === 'menus'
+                    ? 'bg-white text-amber-800 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <UtensilsCrossed className="w-3.5 h-3.5 text-amber-600" />
+                <span>Menu QR System</span>
+              </button>
+            </div>
+
+            {activeTab === 'reviews' && (
+              <button
+                onClick={handleOpenAdd}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/20 transition transform active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Review Place</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* System Capabilities & Setup Banner */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs">
+        {activeTab === 'menus' ? (
+          <MenuSection />
+        ) : (
+          <>
+            {/* System Capabilities & Setup Banner */}
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1">
               <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -525,6 +560,8 @@ export default function AdminDashboardPage() {
             })}
           </div>
         )}
+        </>
+      )}
       </main>
 
       {/* Add / Edit Business Modal */}

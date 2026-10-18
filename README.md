@@ -29,6 +29,26 @@ Designed for businesses to effortlessly collect authentic 5-star Google reviews 
 
 ---
 
+### 🍽️ 2. Restaurant & Hotel Digital Menu QR System (Brand New Section!)
+A completely distinct, dedicated section specifically for Hotels, Restaurants, Bars, and Cafes to display their digital menu cards touch-free.
+
+- **Admin Menu Management**:
+  - Register restaurants with: Name, Cuisine/Category, City, Phone/WhatsApp, Description.
+  - **Multi-Page Menu Card Gallery**: Upload menu photos from your computer/phone or enter image URLs.
+  - Add page titles (e.g. *Starters & Soups*, *Main Course*, *Desserts & Mocktails*).
+  - Add, update, and reorder pages at any time.
+- **Permanent Table Menu QR Codes**:
+  - Each restaurant gets a permanent URL (e.g., `/m/restaurant-name-x9y2z`) and table QR code.
+  - Updating food photos or prices in the future **NEVER breaks or alters the QR code or link**!
+- **Customer Mobile Menu Experience (`/m/[slug]`)**:
+  - Touch-free digital menu with category tabs to switch between menu pages.
+  - Fullscreen zoom & pinch inspection for fine details.
+  - Call restaurant button for instant table orders or assistance.
+- **Printable Restaurant Menu Table Standee**:
+  - Dedicated table tent card template with cutlery badge, QR code, and "Scan for Digital Menu" ready for 1-click printing (`window.print()`).
+
+---
+
 ### ⭐ 2. End-User / Customer Review Experience (`/r/[slug]`)
 1. **Star Rating Selection**: Customer chooses 1 to 5 stars with interactive glowing stars.
 2. **Multi-Language Selector**:

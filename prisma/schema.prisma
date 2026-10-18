@@ -39,3 +39,20 @@ model ReviewLog {
 
   @@index([businessId])
 }
+
+model MenuBusiness {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  category    String
+  city        String
+  description String?
+  phone       String?
+  menuImages  String   @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+}
+

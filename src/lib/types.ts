@@ -58,3 +58,45 @@ export interface GenerateReviewsResponse {
   language: SupportedLanguage;
   rating: number;
 }
+
+// Restaurant / Hotel Menu QR System Types
+export interface MenuImage {
+  id: string;
+  title: string;
+  url: string;
+}
+
+export interface MenuBusiness {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  city: string;
+  description?: string;
+  phone?: string;
+  menuImages: MenuImage[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMenuBusinessInput {
+  name: string;
+  category: string;
+  city: string;
+  description?: string;
+  phone?: string;
+  menuImages: MenuImage[];
+  customSlug?: string;
+}
+
+export interface UpdateMenuBusinessInput {
+  name?: string;
+  category?: string;
+  city?: string;
+  description?: string;
+  phone?: string;
+  menuImages?: MenuImage[];
+  isActive?: boolean;
+}
+
