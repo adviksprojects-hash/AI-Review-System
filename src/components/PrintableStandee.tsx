@@ -2,7 +2,8 @@
 
 import React, { useRef, useState } from 'react';
 import { Business } from '@/lib/types';
-import { Download, X, Star, Smartphone, Radio, Sparkles, Loader2, FileText } from 'lucide-react';
+import { Download, X, Star, Smartphone, Sparkles, Loader2, FileText } from 'lucide-react';
+import { NFC_TAP_LOGO_BASE64 } from '@/lib/nfcLogo';
 
 interface PrintableStandeeProps {
   business: Business;
@@ -29,20 +30,24 @@ export default function PrintableStandee({
       const { jsPDF } = await import('jspdf');
 
       const canvas = await html2canvas(standeeCardRef.current, {
-        scale: 3, // 300 DPI high-resolution export
+        scale: 3, // High-resolution export
         useCORS: true,
+        allowTaint: true,
         backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
         logging: false,
       });
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 120; // mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      const pdfWidth = 105; // mm (standard tent card width)
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: [imgWidth + 20, imgHeight + 20],
+        format: [pdfWidth, pdfHeight],
       });
-      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
       pdf.save(`standee-${business.slug}.pdf`);
     } catch (err) {
       console.error('Download PDF error:', err);
@@ -59,12 +64,16 @@ export default function PrintableStandee({
       const html2canvas = (await import('html2canvas')).default;
 
       const canvas = await html2canvas(standeeCardRef.current, {
-        scale: 3, // 300 DPI high-resolution export
+        scale: 3, // High-resolution export
         useCORS: true,
+        allowTaint: true,
         backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
         logging: false,
       });
-      const dataUrl = canvas.toDataURL('image/png');
+
+      const dataUrl = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
       link.href = dataUrl;
       link.download = `standee-${business.slug}.png`;
@@ -139,13 +148,24 @@ export default function PrintableStandee({
         </div>
 
         {/* Printable Standee Preview */}
-        <div className="mt-6 flex justify-center standee-card-preview-wrapper">
-          <div ref={standeeCardRef} className="standee-card w-full max-w-sm border-2 border-slate-200 rounded-3xl p-6 bg-gradient-to-b from-blue-50/60 via-white to-slate-50 text-center flex flex-col items-center shadow-lg relative overflow-hidden">
+        <div className="mt-6 flex justify-center standee-card-preview-wrapper overflow-x-auto">
+          <div
+            ref={standeeCardRef}
+            className="standee-card rounded-3xl p-6 text-center flex flex-col items-center relative overflow-hidden"
+            style={{
+              width: '380px',
+              minWidth: '380px',
+              maxWidth: '380px',
+              background: 'linear-gradient(180deg, #f0f7ff 0%, #ffffff 45%, #f8fafc 100%)',
+              border: '2px solid #cbd5e1',
+              boxSizing: 'border-box',
+            }}
+          >
             {/* Google-like colored top bar */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-red-500 via-amber-400 to-emerald-500"></div>
 
             {/* Google Badge */}
-            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white shadow-xs border border-slate-200 text-xs font-semibold text-slate-700">
+            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-xs">
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
@@ -183,10 +203,12 @@ export default function PrintableStandee({
             </div>
 
             {/* Prominent NFC & QR Dual Badge */}
-            <div className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white rounded-xl p-2.5 shadow-sm mb-3">
+            <div
+              className="w-full text-white rounded-xl p-2.5 mb-3"
+              style={{ background: 'linear-gradient(90deg, #2563eb 0%, #4f46e5 100%)' }}
+            >
               <div className="flex items-center justify-center gap-2">
-                {/* Contactless waves SVG */}
-                <svg className="w-5 h-5 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M16 4a12 12 0 0 1 0 16" />
                   <path d="M12.5 7a7.5 7.5 0 0 1 0 10" />
                   <path d="M9 10a3 3 0 0 1 0 4" />
@@ -201,7 +223,7 @@ export default function PrintableStandee({
             </div>
 
             {/* QR Code Container with Center NFC Logo */}
-            <div className="relative p-3 bg-white rounded-2xl shadow-md border-2 border-blue-200">
+            <div className="relative p-3 bg-white rounded-2xl border-2 border-blue-200 shadow-sm">
               {qrDataUrl ? (
                 <div className="relative w-48 h-48 flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -210,15 +232,15 @@ export default function PrintableStandee({
                     alt={`QR code for ${business.name}`}
                     className="w-48 h-48 object-contain"
                   />
-                  {/* NFC Logo at the exact Center of the QR Code */}
+                  {/* Center NFC Logo from uploaded image */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-11 h-11 rounded-full bg-white shadow-md border-2 border-blue-600 flex flex-col items-center justify-center p-1">
-                      <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
-                        <path d="M16 5a10 10 0 0 1 0 14" />
-                        <path d="M12.5 8a6 6 0 0 1 0 8" />
-                        <path d="M9 11a2 2 0 0 1 0 2" />
-                      </svg>
-                      <span className="text-[7.5px] font-black text-blue-700 leading-none tracking-tighter mt-0.5">NFC</span>
+                    <div className="w-12 h-12 rounded-xl bg-white shadow-md border border-slate-300 flex items-center justify-center p-1 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={NFC_TAP_LOGO_BASE64}
+                        alt="NFC Tap"
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                   </div>
                 </div>
@@ -230,18 +252,24 @@ export default function PrintableStandee({
             </div>
 
             {/* Tap or Scan Instructions */}
-            <div className="mt-3.5 bg-slate-100/90 rounded-xl p-2.5 w-full border border-slate-200 text-center">
+            <div
+              className="mt-3.5 rounded-xl p-2.5 w-full text-center"
+              style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1' }}
+            >
               <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
                 <Smartphone className="w-3.5 h-3.5 text-blue-600" />
                 <span>स्मार्टफोन टॅप करा किंवा QR स्कॅन करा</span>
               </div>
-              <p className="text-[10px] text-slate-500 mt-0.5 font-medium">
+              <p className="text-[10px] text-slate-600 mt-0.5 font-medium">
                 Hold smartphone near standee (NFC) or scan with Camera
               </p>
             </div>
 
             {/* AI Assistant Notice */}
-            <div className="mt-2.5 bg-blue-50/90 rounded-xl p-2.5 w-full border border-blue-100 text-center">
+            <div
+              className="mt-2.5 rounded-xl p-2.5 w-full text-center"
+              style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe' }}
+            >
               <p className="text-[11px] font-bold text-blue-900 flex items-center justify-center gap-1">
                 <Sparkles className="w-3 h-3 text-blue-600" />
                 <span>AI Review Assistant Available</span>
