@@ -1,9 +1,8 @@
-'use client';
-
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Business } from '@/lib/types';
 import { Download, X, Star, Smartphone, Sparkles, Loader2, FileText } from 'lucide-react';
 import { NFC_TAP_LOGO_BASE64 } from '@/lib/nfcLogo';
+import { generateQrWithLogo } from '@/lib/qrcode';
 
 interface PrintableStandeeProps {
   business: Business;
@@ -21,6 +20,21 @@ export default function PrintableStandee({
   const standeeCardRef = useRef<HTMLDivElement>(null);
   const [downloadingImage, setDownloadingImage] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [inbuiltQr, setInbuiltQr] = useState<string>(qrDataUrl);
+
+  // Generate seamless inbuilt QR code with logo baked directly onto the canvas pixels
+  useEffect(() => {
+    if (!reviewUrl) return;
+    let isMounted = true;
+    generateQrWithLogo(reviewUrl, NFC_TAP_LOGO_BASE64, { size: 450 })
+      .then((url) => {
+        if (isMounted && url) setInbuiltQr(url);
+      })
+      .catch((err) => console.error('Failed to generate inbuilt QR:', err));
+    return () => {
+      isMounted = false;
+    };
+  }, [reviewUrl]);
 
   const handleDownloadPdf = async () => {
     if (!standeeCardRef.current) return;
@@ -36,6 +50,7 @@ export default function PrintableStandee({
         backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0,
+        windowWidth: 1200,
         logging: false,
       });
 
@@ -70,6 +85,7 @@ export default function PrintableStandee({
         backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0,
+        windowWidth: 1200,
         logging: false,
       });
 
@@ -151,11 +167,13 @@ export default function PrintableStandee({
         <div className="mt-6 flex justify-center standee-card-preview-wrapper overflow-x-auto">
           <div
             ref={standeeCardRef}
-            className="standee-card rounded-3xl p-6 text-center flex flex-col items-center relative overflow-hidden"
+            className="standee-card rounded-3xl text-center flex flex-col items-center relative overflow-hidden"
             style={{
               width: '380px',
               minWidth: '380px',
               maxWidth: '380px',
+              minHeight: '620px',
+              padding: '20px 24px 34px 24px',
               background: 'linear-gradient(180deg, #f0f7ff 0%, #ffffff 45%, #f8fafc 100%)',
               border: '2px solid #cbd5e1',
               boxSizing: 'border-box',
@@ -165,7 +183,7 @@ export default function PrintableStandee({
             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-red-500 via-amber-400 to-emerald-500"></div>
 
             {/* Google Badge */}
-            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-xs">
+            <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-xs">
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
@@ -188,7 +206,7 @@ export default function PrintableStandee({
             </div>
 
             {/* Business Info */}
-            <h2 className="mt-3 text-xl font-black text-slate-900 leading-tight">
+            <h2 className="mt-2 text-xl font-black text-slate-900 leading-snug">
               {business.name}
             </h2>
             <p className="text-xs text-slate-600 font-medium mt-0.5">
@@ -196,7 +214,7 @@ export default function PrintableStandee({
             </p>
 
             {/* Stars */}
-            <div className="flex items-center justify-center gap-1 my-2 text-amber-400">
+            <div className="flex items-center justify-center gap-1 my-1.5 text-amber-400">
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star key={s} className="w-5 h-5 fill-amber-400 text-amber-400" />
               ))}
@@ -204,7 +222,7 @@ export default function PrintableStandee({
 
             {/* Prominent NFC & QR Dual Badge */}
             <div
-              className="w-full text-white rounded-xl p-2.5 mb-3"
+              className="w-full text-white rounded-xl py-2 px-3 my-2"
               style={{ background: 'linear-gradient(90deg, #2563eb 0%, #4f46e5 100%)' }}
             >
               <div className="flex items-center justify-center gap-2">
@@ -222,30 +240,19 @@ export default function PrintableStandee({
               </p>
             </div>
 
-            {/* QR Code Container with Center NFC Logo */}
-            <div className="relative p-3 bg-white rounded-2xl border-2 border-blue-200 shadow-sm">
-              {qrDataUrl ? (
-                <div className="relative w-48 h-48 flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={qrDataUrl}
-                    alt={`QR code for ${business.name}`}
-                    className="w-48 h-48 object-contain"
-                  />
-                  {/* Center NFC Logo from uploaded image */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-12 h-12 rounded-xl bg-white shadow-md border border-slate-300 flex items-center justify-center p-1 overflow-hidden">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={NFC_TAP_LOGO_BASE64}
-                        alt="NFC Tap"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  </div>
-                </div>
+            {/* Inbuilt QR Code Image (Logo baked directly into image pixels - no sticker look) */}
+            <div className="p-2.5 bg-white rounded-2xl border-2 border-blue-200 shadow-xs flex items-center justify-center">
+              {inbuiltQr || qrDataUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={inbuiltQr || qrDataUrl}
+                  alt={`QR code for ${business.name}`}
+                  className="w-44 h-44 object-contain block mx-auto"
+                  width={176}
+                  height={176}
+                />
               ) : (
-                <div className="w-48 h-48 flex items-center justify-center text-slate-400 text-xs">
+                <div className="w-44 h-44 flex items-center justify-center text-slate-400 text-xs">
                   Generating QR...
                 </div>
               )}
@@ -253,7 +260,7 @@ export default function PrintableStandee({
 
             {/* Tap or Scan Instructions */}
             <div
-              className="mt-3.5 rounded-xl p-2.5 w-full text-center"
+              className="mt-2.5 rounded-xl py-2 px-3 w-full text-center"
               style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1' }}
             >
               <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
@@ -267,7 +274,7 @@ export default function PrintableStandee({
 
             {/* AI Assistant Notice */}
             <div
-              className="mt-2.5 rounded-xl p-2.5 w-full text-center"
+              className="mt-2 rounded-xl py-2 px-3 w-full text-center"
               style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe' }}
             >
               <p className="text-[11px] font-bold text-blue-900 flex items-center justify-center gap-1">
@@ -279,7 +286,8 @@ export default function PrintableStandee({
               </p>
             </div>
 
-            <p className="mt-2.5 text-[10px] text-slate-400 break-all max-w-full px-2">
+            {/* Clean Single-Line URL with generous bottom clearance */}
+            <p className="mt-2.5 text-[10px] text-slate-400 truncate max-w-[320px] px-2 block mx-auto text-center">
               {reviewUrl}
             </p>
           </div>

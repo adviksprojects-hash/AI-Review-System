@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { MenuBusiness } from '@/lib/types';
 import { Download, X, UtensilsCrossed, Phone, Smartphone, Loader2, FileText } from 'lucide-react';
 import { NFC_TAP_LOGO_BASE64 } from '@/lib/nfcLogo';
+import { generateQrWithLogo } from '@/lib/qrcode';
 
 interface PrintableMenuStandeeProps {
   business: MenuBusiness;
@@ -21,6 +22,21 @@ export default function PrintableMenuStandee({
   const standeeCardRef = useRef<HTMLDivElement>(null);
   const [downloadingImage, setDownloadingImage] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [inbuiltQr, setInbuiltQr] = useState<string>(qrDataUrl);
+
+  // Generate seamless inbuilt QR code with logo baked directly onto the canvas pixels
+  useEffect(() => {
+    if (!menuUrl) return;
+    let isMounted = true;
+    generateQrWithLogo(menuUrl, NFC_TAP_LOGO_BASE64, { size: 450 })
+      .then((url) => {
+        if (isMounted && url) setInbuiltQr(url);
+      })
+      .catch((err) => console.error('Failed to generate inbuilt menu QR:', err));
+    return () => {
+      isMounted = false;
+    };
+  }, [menuUrl]);
 
   const handleDownloadPdf = async () => {
     if (!standeeCardRef.current) return;
@@ -36,6 +52,7 @@ export default function PrintableMenuStandee({
         backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0,
+        windowWidth: 1200,
         logging: false,
       });
 
@@ -70,6 +87,7 @@ export default function PrintableMenuStandee({
         backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0,
+        windowWidth: 1200,
         logging: false,
       });
 
@@ -154,11 +172,13 @@ export default function PrintableMenuStandee({
         <div className="mt-6 flex justify-center standee-card-preview-wrapper overflow-x-auto">
           <div
             ref={standeeCardRef}
-            className="standee-card rounded-3xl p-6 text-center flex flex-col items-center relative overflow-hidden"
+            className="standee-card rounded-3xl text-center flex flex-col items-center relative overflow-hidden"
             style={{
               width: '380px',
               minWidth: '380px',
               maxWidth: '380px',
+              minHeight: '620px',
+              padding: '20px 24px 34px 24px',
               background: 'linear-gradient(180deg, #fffbeb 0%, #ffffff 45%, #fff7ed 100%)',
               border: '2px solid #fcd34d',
               boxSizing: 'border-box',
@@ -168,13 +188,13 @@ export default function PrintableMenuStandee({
             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600"></div>
 
             {/* Badge */}
-            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-200">
+            <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-200">
               <UtensilsCrossed className="w-3.5 h-3.5 text-amber-700" />
               <span>DIGITAL CONTACTLESS MENU</span>
             </div>
 
             {/* Restaurant Info */}
-            <h2 className="mt-3 text-xl font-black text-slate-900 leading-tight">
+            <h2 className="mt-2 text-xl font-black text-slate-900 leading-snug">
               {business.name}
             </h2>
             <p className="text-xs text-amber-800 font-semibold mt-0.5">
@@ -188,7 +208,7 @@ export default function PrintableMenuStandee({
 
             {/* Prominent NFC & QR Dual Badge */}
             <div
-              className="w-full text-white rounded-xl p-2.5 my-3"
+              className="w-full text-white rounded-xl py-2 px-3 my-2"
               style={{ background: 'linear-gradient(90deg, #d97706 0%, #ea580c 100%)' }}
             >
               <div className="flex items-center justify-center gap-2">
@@ -206,30 +226,19 @@ export default function PrintableMenuStandee({
               </p>
             </div>
 
-            {/* QR Code Container with Center NFC Logo */}
-            <div className="relative p-3 bg-white rounded-2xl border-2 border-amber-300 shadow-sm">
-              {qrDataUrl ? (
-                <div className="relative w-48 h-48 flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={qrDataUrl}
-                    alt={`Menu QR for ${business.name}`}
-                    className="w-48 h-48 object-contain"
-                  />
-                  {/* Center NFC Logo from uploaded image */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-12 h-12 rounded-xl bg-white shadow-md border border-slate-300 flex items-center justify-center p-1 overflow-hidden">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={NFC_TAP_LOGO_BASE64}
-                        alt="NFC Tap"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  </div>
-                </div>
+            {/* Inbuilt QR Code Image (Logo baked directly into image pixels - no sticker look) */}
+            <div className="p-2.5 bg-white rounded-2xl border-2 border-amber-300 shadow-xs flex items-center justify-center">
+              {inbuiltQr || qrDataUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={inbuiltQr || qrDataUrl}
+                  alt={`Menu QR for ${business.name}`}
+                  className="w-44 h-44 object-contain block mx-auto"
+                  width={176}
+                  height={176}
+                />
               ) : (
-                <div className="w-48 h-48 flex items-center justify-center text-slate-400 text-xs">
+                <div className="w-44 h-44 flex items-center justify-center text-slate-400 text-xs">
                   Generating QR...
                 </div>
               )}
@@ -237,7 +246,7 @@ export default function PrintableMenuStandee({
 
             {/* Tap or Scan Instructions */}
             <div
-              className="mt-3.5 bg-white rounded-xl p-2.5 w-full text-center"
+              className="mt-2.5 bg-white rounded-xl py-2 px-3 w-full text-center"
               style={{ border: '1px solid #fde68a' }}
             >
               <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
@@ -252,7 +261,7 @@ export default function PrintableMenuStandee({
             {/* Phone for Assistance */}
             {business.phone && (
               <div
-                className="mt-2.5 flex items-center justify-center gap-1 text-xs font-bold text-slate-700 py-1.5 px-3 rounded-lg w-full"
+                className="mt-2 flex items-center justify-center gap-1 text-xs font-bold text-slate-700 py-1.5 px-3 rounded-lg w-full"
                 style={{ backgroundColor: '#fffbeb', border: '1px solid #fef3c7' }}
               >
                 <Phone className="w-3.5 h-3.5 text-amber-600" />
@@ -260,7 +269,8 @@ export default function PrintableMenuStandee({
               </div>
             )}
 
-            <p className="mt-2 text-[10px] text-slate-400 break-all max-w-full px-2">
+            {/* Clean Single-Line URL with generous bottom clearance */}
+            <p className="mt-2.5 text-[10px] text-slate-400 truncate max-w-[320px] px-2 block mx-auto text-center">
               {menuUrl}
             </p>
           </div>
