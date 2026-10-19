@@ -16,19 +16,66 @@ body {
 
 /* Custom print media queries for QR Standee / Tent Card */
 @media print {
+  @page {
+    size: auto;
+    margin: 8mm;
+  }
+
+  /* Force exact colors, gradients, and backgrounds across all browsers */
+  html, body, * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
   body {
     background: #ffffff !important;
     color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
+
   .no-print {
     display: none !important;
   }
-  .print-only {
+
+  /* Strip modal backdrops and wrappers during print */
+  .standee-modal-backdrop {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
     display: block !important;
+    inset: auto !important;
+    width: 100% !important;
   }
-  .standee-card {
-    page-break-inside: avoid;
+
+  .standee-modal-container {
     box-shadow: none !important;
-    border: 2px solid #000 !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    border: none !important;
+    max-width: none !important;
+    width: 100% !important;
+    background: transparent !important;
+  }
+
+  .standee-card-preview-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  .standee-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 10px auto !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }

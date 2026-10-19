@@ -11,6 +11,7 @@ export interface Business {
   googleReviewUrl?: string;
   customPrompt?: string;
   geminiApiKey?: string;
+  minRatingForRedirect?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -25,6 +26,7 @@ export interface CreateBusinessInput {
   customPrompt?: string;
   customSlug?: string;
   geminiApiKey?: string;
+  minRatingForRedirect?: number;
 }
 
 export interface UpdateBusinessInput {
@@ -35,6 +37,7 @@ export interface UpdateBusinessInput {
   keywords?: string[] | string;
   customPrompt?: string;
   geminiApiKey?: string;
+  minRatingForRedirect?: number;
   isActive?: boolean;
 }
 

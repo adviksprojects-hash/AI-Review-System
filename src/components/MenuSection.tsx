@@ -528,8 +528,8 @@ export default function MenuSection() {
                     onClick={() => openStandeeModal(b)}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition shadow-xs"
                   >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>Print Menu Standee</span>
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Standee (PDF/PNG)</span>
                   </button>
 
                   <button

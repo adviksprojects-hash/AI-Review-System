@@ -9,6 +9,13 @@ const nextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      canvg: false,
+    };
+    return config;
+  },
 };
 
 export default nextConfig;

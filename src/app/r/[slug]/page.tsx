@@ -17,6 +17,11 @@ import {
   Share2,
   ChevronRight,
   AlertCircle,
+  Send,
+  HeartHandshake,
+  ShieldCheck,
+  Lock,
+  X,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Business, ReviewOption, SupportedLanguage } from '@/lib/types';
@@ -38,6 +43,12 @@ export default function ReviewFlowPage() {
   const [customizedReview, setCustomizedReview] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
   const [selectedAspects, setSelectedAspects] = useState<string[]>([]);
+  const [showThankYouModal, setShowThankYouModal] = useState<boolean>(false);
+  const [feedbackSent, setFeedbackSent] = useState<boolean>(false);
+
+  // Redirection threshold logic
+  const minRedirectRating = business?.minRatingForRedirect ?? 4;
+  const isRedirectAllowed = rating >= minRedirectRating;
 
   // Fetch business info
   useEffect(() => {
@@ -130,16 +141,30 @@ export default function ReviewFlowPage() {
     setCustomizedReview(option.text);
   };
 
-  const handleCopyAndSubmit = async () => {
+  const handleSubmitAction = async () => {
     if (!business) return;
     const reviewText = customizedReview.trim();
     if (!reviewText) return;
 
+    // Direct copy to clipboard for customer convenience
     try {
-      // Copy to clipboard
       await navigator.clipboard.writeText(reviewText);
       setCopied(true);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
 
+    // Check if rating meets threshold for Google redirection
+    if (!isRedirectAllowed) {
+      // Restricted rating -> DO NOT REDIRECT TO GOOGLE MAPS!
+      // Show polite Thank You message modal directly
+      setFeedbackSent(true);
+      setShowThankYouModal(true);
+      return;
+    }
+
+    // Allowed rating -> Proceed with Google Redirection
+    try {
       // Trigger Confetti effect
       confetti({
         particleCount: 80,
@@ -157,7 +182,7 @@ export default function ReviewFlowPage() {
         window.open(targetUrl, '_blank', 'noopener,noreferrer');
       }, 700);
     } catch (err) {
-      console.error('Failed to copy text:', err);
+      console.error('Redirection error:', err);
       // Fallback redirect even if clipboard failed
       const targetUrl =
         business.googleReviewUrl ||
@@ -432,22 +457,34 @@ export default function ReviewFlowPage() {
           )}
         </div>
 
-        {/* Step 4: Submit & Copy Action Button */}
+        {/* Step 4: Submit Review Action Button */}
         <div className="sticky bottom-4 z-20">
           <button
-            onClick={handleCopyAndSubmit}
+            onClick={handleSubmitAction}
             disabled={generating || !customizedReview.trim()}
-            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-extrabold text-base shadow-xl shadow-blue-500/25 flex items-center justify-center gap-3 transition-all transform active:scale-98 disabled:opacity-60"
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-extrabold text-base shadow-xl shadow-blue-500/25 flex items-center justify-center gap-3 transition-all transform active:scale-98 disabled:opacity-60 cursor-pointer"
           >
-            {copied ? (
+            {copied && isRedirectAllowed ? (
               <>
                 <CheckCircle2 className="w-5 h-5 text-emerald-300 animate-bounce" />
-                <span>Review Copied! Opening Google Reviews...</span>
+                <span>
+                  {language === 'mr'
+                    ? 'रिव्ह्यू कॉपी झाला! गुगल उघडत आहे...'
+                    : language === 'hi'
+                    ? 'रिव्यू कॉपी हो गया! गूगल खुल रहा है...'
+                    : 'Review Copied! Opening Google Reviews...'}
+                </span>
               </>
             ) : (
               <>
-                <Copy className="w-5 h-5" />
-                <span>Copy & Submit Review on Google</span>
+                <Sparkles className="w-5 h-5 text-amber-300" />
+                <span>
+                  {language === 'mr'
+                    ? 'रिव्ह्यू सबमिट करा'
+                    : language === 'hi'
+                    ? 'रिव्यू सबमिट करें'
+                    : 'Submit Review'}
+                </span>
                 <ChevronRight className="w-5 h-5 opacity-70" />
               </>
             )}
@@ -456,11 +493,102 @@ export default function ReviewFlowPage() {
           {/* User helper tip */}
           <div className="mt-2 text-center">
             <p className="text-[11px] text-slate-500 font-medium">
-              💡 Clicking above copies the review & opens Google. Just <strong>Paste</strong> and press <strong>Post</strong>!
+              {language === 'mr'
+                ? '💡 "रिव्ह्यू सबमिट करा" वर क्लिक करताच रिव्ह्यू थेट कॉपी होईल.'
+                : language === 'hi'
+                ? '💡 "रिव्यू सबमिट करें" पर क्लिक करते ही रिव्यू सीधे कॉपी हो जाएगा।'
+                : '💡 Clicking "Submit Review" will automatically copy your review.'}
             </p>
           </div>
         </div>
       </div>
+
+      {/* Thank You Message Modal */}
+      {showThankYouModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 text-center relative animate-in zoom-in-95 duration-200">
+            {/* Close button */}
+            <button
+              onClick={() => setShowThankYouModal(false)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Icon */}
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/30">
+              <CheckCircle2 className="w-9 h-9" />
+            </div>
+
+            {/* Title */}
+            <h3 className="text-xl font-black text-slate-900 mb-1">
+              {language === 'mr'
+                ? 'आपल्या अभिप्रायाबद्दल मनःपूर्वक धन्यवाद!'
+                : language === 'hi'
+                ? 'आपके बहुमूल्य रिव्यू के लिए धन्यवाद!'
+                : 'Thank You for Your Review!'}
+            </h3>
+
+            {/* Star Rating Display */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold my-2">
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`w-3.5 h-3.5 ${
+                      s <= rating
+                        ? 'fill-amber-400 text-amber-400'
+                        : 'text-slate-200'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span>{rating} of 5 Stars Submitted</span>
+            </div>
+
+            {/* Polite Thank You Message */}
+            <div className="space-y-2.5 mt-3 text-xs sm:text-sm text-slate-600 leading-relaxed text-center">
+              <p>
+                {language === 'mr' ? (
+                  <>
+                    <strong>{business.name}</strong> ला आपला बहुमूल्य वेळ देऊन अभिप्राय दिल्याबद्दल धन्यवाद! आम्ही आपल्या अभिप्रायाचा आदर करतो आणि सदैव उत्तम सेवेसाठी कटिबद्ध आहोत.
+                  </>
+                ) : language === 'hi' ? (
+                  <>
+                    <strong>{business.name}</strong> को अपना बहुमूल्य समय और रिव्यू देने के लिए बहुत-बहुत धन्यवाद! हम आपके फीडबैक का सम्मान करते हैं और निरंतर बेहतर सेवा देने के लिए प्रयासरत हैं।
+                  </>
+                ) : (
+                  <>
+                    Thank you so much for taking the time to share your feedback with <strong>{business.name}</strong>. Your feedback has been recorded and is deeply appreciated!
+                  </>
+                )}
+              </p>
+            </div>
+
+            {/* Customer's note quote */}
+            {customizedReview && (
+              <div className="mt-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-left">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                  Your Submitted Review:
+                </span>
+                <p className="text-xs text-slate-700 italic line-clamp-3">
+                  &ldquo;{customizedReview}&rdquo;
+                </p>
+              </div>
+            )}
+
+            {/* Action button */}
+            <div className="mt-5">
+              <button
+                onClick={() => setShowThankYouModal(false)}
+                className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition shadow-sm"
+              >
+                {language === 'mr' ? 'पूर्ण झाले' : language === 'hi' ? 'संपन्न' : 'Done & Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

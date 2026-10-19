@@ -18,6 +18,7 @@ model Business {
   googleReviewUrl String?
   customPrompt    String?
   geminiApiKey    String?
+  minRatingForRedirect Int @default(4)
   isActive        Boolean     @default(true)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -54,5 +55,16 @@ model MenuBusiness {
   updatedAt   DateTime @updatedAt
 
   @@index([slug])
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
 }
 
