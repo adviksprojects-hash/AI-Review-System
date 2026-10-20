@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { MenuBusiness } from '@/lib/types';
-import { Download, X, UtensilsCrossed, Phone, Smartphone, Loader2, FileText } from 'lucide-react';
+import { Download, X, UtensilsCrossed, Phone, Smartphone, Loader2, Printer } from 'lucide-react';
 import { NFC_TAP_LOGO_BASE64 } from '@/lib/nfcLogo';
 import { generateQrWithLogo } from '@/lib/qrcode';
 
@@ -21,7 +21,6 @@ export default function PrintableMenuStandee({
 }: PrintableMenuStandeeProps) {
   const standeeCardRef = useRef<HTMLDivElement>(null);
   const [downloadingImage, setDownloadingImage] = useState(false);
-  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [inbuiltQr, setInbuiltQr] = useState<string>(qrDataUrl);
 
   // Generate seamless inbuilt QR code with logo baked directly onto the canvas pixels
@@ -38,40 +37,8 @@ export default function PrintableMenuStandee({
     };
   }, [menuUrl]);
 
-  const handleDownloadPdf = async () => {
-    if (!standeeCardRef.current) return;
-    try {
-      setDownloadingPdf(true);
-      const html2canvas = (await import('html2canvas')).default;
-      const { jsPDF } = await import('jspdf');
-
-      const canvas = await html2canvas(standeeCardRef.current, {
-        scale: 3, // High-resolution export
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: 1200,
-        logging: false,
-      });
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const pdfWidth = 105; // mm (standard tent card width)
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: [pdfWidth, pdfHeight],
-      });
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
-      pdf.save(`menu-standee-${business.slug}.pdf`);
-    } catch (err) {
-      console.error('Download PDF error:', err);
-      alert('Failed to generate PDF. Please try again.');
-    } finally {
-      setDownloadingPdf(false);
-    }
+  const handlePrint = () => {
+    window.print();
   };
 
   const handleDownloadImage = async () => {
@@ -80,14 +47,14 @@ export default function PrintableMenuStandee({
       setDownloadingImage(true);
       const html2canvas = (await import('html2canvas')).default;
 
-      const canvas = await html2canvas(standeeCardRef.current, {
+      const element = standeeCardRef.current;
+      const canvas = await html2canvas(element, {
         scale: 3, // High-resolution export
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0,
-        windowWidth: 1200,
         logging: false,
       });
 
@@ -113,37 +80,25 @@ export default function PrintableMenuStandee({
         {/* Controls */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200 no-print">
           <div>
-            <h3 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
-              <UtensilsCrossed className="w-5 h-5 text-amber-600" />
-              <span>Restaurant Smart Standee</span>
-            </h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-800">Smart Contactless Menu Standee</h3>
             <p className="text-xs text-slate-500">
-              Download exact PDF or PNG ready for printing.
+              Print directly or download high-resolution PNG image.
             </p>
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={handleDownloadPdf}
-              disabled={downloadingPdf || downloadingImage}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-xs transition text-xs"
-              title="Download print-ready PDF file"
+              onClick={handlePrint}
+              disabled={downloadingImage}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-xs transition text-xs cursor-pointer"
+              title="Print menu standee"
             >
-              {downloadingPdf ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>PDF...</span>
-                </>
-              ) : (
-                <>
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>Download PDF</span>
-                </>
-              )}
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print Standee</span>
             </button>
             <button
               onClick={handleDownloadImage}
-              disabled={downloadingPdf || downloadingImage}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-xs transition text-xs"
+              disabled={downloadingImage}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-xs transition text-xs cursor-pointer"
               title="Download high-resolution PNG image"
             >
               {downloadingImage ? (
@@ -172,73 +127,63 @@ export default function PrintableMenuStandee({
         <div className="mt-6 flex justify-center standee-card-preview-wrapper overflow-x-auto">
           <div
             ref={standeeCardRef}
-            className="standee-card rounded-3xl text-center flex flex-col items-center relative overflow-hidden"
+            className="standee-card rounded-3xl p-6 text-center flex flex-col items-center relative overflow-hidden"
             style={{
               width: '380px',
-              minWidth: '380px',
-              maxWidth: '380px',
-              minHeight: '620px',
-              padding: '20px 24px 34px 24px',
               background: 'linear-gradient(180deg, #fffbeb 0%, #ffffff 45%, #fff7ed 100%)',
               border: '2px solid #fcd34d',
-              boxSizing: 'border-box',
             }}
           >
             {/* Top decorative accent */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600"></div>
 
             {/* Badge */}
-            <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-200">
-              <UtensilsCrossed className="w-3.5 h-3.5 text-amber-700" />
+            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-200">
+              <UtensilsCrossed className="w-3.5 h-3.5 text-amber-700 shrink-0" />
               <span>DIGITAL CONTACTLESS MENU</span>
             </div>
 
-            {/* Restaurant Info */}
-            <h2 className="mt-2 text-xl font-black text-slate-900 leading-snug">
+            {/* Business Info */}
+            <h2 className="mt-3 text-xl font-black text-slate-900 leading-tight">
               {business.name}
             </h2>
-            <p className="text-xs text-amber-800 font-semibold mt-0.5">
-              {business.category} • {business.city}
+            <p className="text-xs text-slate-600 font-medium mt-0.5">
+              {business.category} {business.city ? `• ${business.city}` : ''}
             </p>
-            {business.description && (
-              <p className="text-[11px] text-slate-600 mt-1 line-clamp-2 px-2">
-                {business.description}
-              </p>
-            )}
 
             {/* Prominent NFC & QR Dual Badge */}
             <div
-              className="w-full text-white rounded-xl py-2 px-3 my-2"
+              className="w-full text-white rounded-xl p-2.5 my-3"
               style={{ background: 'linear-gradient(90deg, #d97706 0%, #ea580c 100%)' }}
             >
               <div className="flex items-center justify-center gap-2">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M16 4a12 12 0 0 1 0 16" />
                   <path d="M12.5 7a7.5 7.5 0 0 1 0 10" />
                   <path d="M9 10a3 3 0 0 1 0 4" />
                 </svg>
                 <span className="font-extrabold text-xs tracking-wider uppercase">
-                  ⚡ TAP PHONE (NFC) OR SCAN QR
+                  ⚡ TAP PHONE HERE (NFC)
                 </span>
               </div>
               <p className="text-[10px] text-amber-100 font-medium mt-0.5">
-                Instant digital menu on your phone • Touch-free
+                or scan the QR code to open the menu
               </p>
             </div>
 
-            {/* Inbuilt QR Code Image (Logo baked directly into image pixels - no sticker look) */}
-            <div className="p-2.5 bg-white rounded-2xl border-2 border-amber-300 shadow-xs flex items-center justify-center">
+            {/* QR Code Container with Inbuilt / Center NFC Logo */}
+            <div className="p-3 bg-white rounded-2xl border-2 border-amber-300 shadow-sm flex items-center justify-center">
               {inbuiltQr || qrDataUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={inbuiltQr || qrDataUrl}
                   alt={`Menu QR for ${business.name}`}
-                  className="w-44 h-44 object-contain block mx-auto"
-                  width={176}
-                  height={176}
+                  className="w-48 h-48 object-contain"
+                  width={192}
+                  height={192}
                 />
               ) : (
-                <div className="w-44 h-44 flex items-center justify-center text-slate-400 text-xs">
+                <div className="w-48 h-48 flex items-center justify-center text-slate-400 text-xs">
                   Generating QR...
                 </div>
               )}
@@ -246,11 +191,11 @@ export default function PrintableMenuStandee({
 
             {/* Tap or Scan Instructions */}
             <div
-              className="mt-2.5 bg-white rounded-xl py-2 px-3 w-full text-center"
+              className="mt-3.5 bg-white rounded-xl p-2.5 w-full text-center"
               style={{ border: '1px solid #fde68a' }}
             >
               <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
-                <Smartphone className="w-3.5 h-3.5 text-amber-600" />
+                <Smartphone className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                 <span>स्मार्टफोन टॅप करा किंवा कॅमेऱ्याने QR स्कॅन करा</span>
               </div>
               <p className="text-[10px] text-slate-600 mt-0.5 font-medium">
@@ -261,16 +206,15 @@ export default function PrintableMenuStandee({
             {/* Phone for Assistance */}
             {business.phone && (
               <div
-                className="mt-2 flex items-center justify-center gap-1 text-xs font-bold text-slate-700 py-1.5 px-3 rounded-lg w-full"
+                className="mt-2.5 flex items-center justify-center gap-1 text-xs font-bold text-slate-700 py-1.5 px-3 rounded-lg w-full"
                 style={{ backgroundColor: '#fffbeb', border: '1px solid #fef3c7' }}
               >
-                <Phone className="w-3.5 h-3.5 text-amber-600" />
+                <Phone className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                 <span>Orders &amp; Table Assistance: {business.phone}</span>
               </div>
             )}
 
-            {/* Clean Single-Line URL with generous bottom clearance */}
-            <p className="mt-2.5 text-[10px] text-slate-400 truncate max-w-[320px] px-2 block mx-auto text-center">
+            <p className="mt-2 text-[10px] text-slate-400 break-all max-w-full px-2 text-center">
               {menuUrl}
             </p>
           </div>

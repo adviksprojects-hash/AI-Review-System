@@ -10,7 +10,7 @@ const CANDIDATE_MODELS = [
 ];
 
 // Dynamic multi-variation fallback generator (ensures zero repetition and strictly matches the customer's star rating)
-const generateDynamicFallback = (
+export const generateDynamicFallback = (
   business: Business,
   rating: number,
   lang: SupportedLanguage
