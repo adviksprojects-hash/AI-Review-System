@@ -130,14 +130,18 @@ export async function verifyAdminStatus(): Promise<{
   }
 
   const { user } = sync;
-  const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
+  const normalizedRole = (user.role || '').toUpperCase().trim();
+  const isAdmin = normalizedRole === 'ADMIN' || normalizedRole === 'SUPERADMIN';
 
   return {
     isAuthenticated: true,
     isAdmin,
-    adminProfile: user,
+    adminProfile: {
+      ...user,
+      role: normalizedRole,
+    },
     error: isAdmin
       ? undefined
-      : `Account '${user.email}' is registered as '${user.role}' in the database. Admin role must be granted directly in the database.`,
+      : `Account '${user.email}' is registered as '${normalizedRole}' in the database. Admin role must be granted directly in the database.`,
   };
 }
