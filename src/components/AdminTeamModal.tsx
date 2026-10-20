@@ -4,16 +4,15 @@ import React, { useState, useEffect } from 'react';
 import {
   X,
   ShieldCheck,
-  UserPlus,
-  Trash2,
   Mail,
   Crown,
   AlertCircle,
   User,
   Shield,
-  ArrowUpRight,
-  ArrowDownRight,
-  Filter,
+  Search,
+  Database,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 interface AdminTeamModalProps {
@@ -34,13 +33,8 @@ export default function AdminTeamModal({ onClose, currentEmail }: AdminTeamModal
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterRole, setFilterRole] = useState<'ALL' | 'ADMIN' | 'USER'>('ALL');
-
-  // New account form
-  const [newEmail, setNewEmail] = useState('');
-  const [newName, setNewName] = useState('');
-  const [newRole, setNewRole] = useState<'USER' | 'ADMIN' | 'SUPERADMIN'>('ADMIN');
-  const [submitting, setSubmitting] = useState(false);
-  const [updatingEmail, setUpdatingEmail] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [copiedSql, setCopiedSql] = useState<string | null>(null);
 
   const fetchAccounts = async () => {
     try {
@@ -63,90 +57,25 @@ export default function AdminTeamModal({ onClose, currentEmail }: AdminTeamModal
     fetchAccounts();
   }, []);
 
-  const handleAddAccount = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newEmail.trim() || !newEmail.includes('@')) {
-      alert('Please enter a valid email address');
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      setError(null);
-      const res = await fetch('/api/auth/admins', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: newEmail.trim(),
-          name: newName.trim() || null,
-          role: newRole,
-        }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        setNewEmail('');
-        setNewName('');
-        fetchAccounts();
-      } else {
-        setError(json.error || 'Failed to add account');
-      }
-    } catch (err: any) {
-      setError(err?.message || 'Error adding account');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleRoleChange = async (email: string, targetRole: 'USER' | 'ADMIN' | 'SUPERADMIN') => {
-    try {
-      setUpdatingEmail(email);
-      setError(null);
-      const res = await fetch('/api/auth/admins', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role: targetRole }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        fetchAccounts();
-      } else {
-        alert(json.error || 'Failed to update role');
-      }
-    } catch (err: any) {
-      alert(err?.message || 'Error updating role');
-    } finally {
-      setUpdatingEmail(null);
-    }
-  };
-
-  const handleDeleteAccount = async (emailToDelete: string) => {
-    if (emailToDelete.toLowerCase() === currentEmail?.toLowerCase()) {
-      alert('You cannot delete your own active admin account.');
-      return;
-    }
-    if (!confirm(`Are you sure you want to delete the record for ${emailToDelete}?`)) {
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/auth/admins?email=${encodeURIComponent(emailToDelete)}`, {
-        method: 'DELETE',
-      });
-      const json = await res.json();
-      if (json.success) {
-        fetchAccounts();
-      } else {
-        alert(json.error || 'Failed to remove account');
-      }
-    } catch (err: any) {
-      alert(err?.message || 'Error deleting account');
-    }
+  const handleCopySql = (email: string, role: string) => {
+    const sql = `UPDATE "AdminUser" SET role = '${role}' WHERE email = '${email}';`;
+    navigator.clipboard.writeText(sql);
+    setCopiedSql(email);
+    setTimeout(() => setCopiedSql(null), 2500);
   };
 
   const filteredAccounts = accounts.filter((acc) => {
-    if (filterRole === 'ADMIN') return acc.role === 'ADMIN' || acc.role === 'SUPERADMIN';
-    if (filterRole === 'USER') return acc.role === 'USER';
-    return true;
+    const matchesFilter =
+      filterRole === 'ALL' ||
+      (filterRole === 'ADMIN' && (acc.role === 'ADMIN' || acc.role === 'SUPERADMIN')) ||
+      (filterRole === 'USER' && acc.role === 'USER');
+
+    const matchesSearch =
+      !searchQuery.trim() ||
+      acc.email.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
+      (acc.name && acc.name.toLowerCase().includes(searchQuery.toLowerCase().trim()));
+
+    return matchesFilter && matchesSearch;
   });
 
   const adminCount = accounts.filter((a) => a.role === 'ADMIN' || a.role === 'SUPERADMIN').length;
@@ -162,9 +91,9 @@ export default function AdminTeamModal({ onClose, currentEmail }: AdminTeamModal
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-slate-900">Database Users &amp; Admins</h3>
+              <h3 className="text-base font-extrabold text-slate-900">Database Accounts &amp; Roles</h3>
               <p className="text-xs text-slate-500">
-                All accounts logged in or registered in your PostgreSQL database.
+                All accounts registered in your PostgreSQL database.
               </p>
             </div>
           </div>
@@ -183,91 +112,69 @@ export default function AdminTeamModal({ onClose, currentEmail }: AdminTeamModal
           </div>
         )}
 
-        {/* Add New User / Admin Form */}
-        <form onSubmit={handleAddAccount} className="mt-4 p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-          <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-            <UserPlus className="w-3.5 h-3.5 text-blue-600" />
-            <span>Add or Pre-Authorize Account</span>
+        {/* Database Role Rules Notice */}
+        <div className="mt-4 p-3.5 bg-blue-50/70 rounded-xl border border-blue-200 text-xs text-blue-900 space-y-2">
+          <div className="flex items-center gap-1.5 font-bold text-blue-950">
+            <Database className="w-4 h-4 text-blue-600" />
+            <span>Role Assignment: Managed Strictly in Database</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <input
-              type="email"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="User Email (e.g. user@gmail.com)"
-              required
-              className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <p className="text-[11px] text-blue-800 leading-relaxed">
+            By default, any new email logging in is automatically recorded as <strong className="font-extrabold text-blue-950">USER</strong>. To assign <strong className="font-extrabold text-blue-950">ADMIN</strong> privileges, update the role column directly in your Neon PostgreSQL database.
+          </p>
+        </div>
+
+        {/* Search & Filter Bar */}
+        <div className="mt-4 space-y-2.5">
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Full Name (optional)"
-              className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by email or name..."
+              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-semibold">Assign Role:</span>
-              <select
-                value={newRole}
-                onChange={(e) => setNewRole(e.target.value as any)}
-                className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs text-slate-700 focus:outline-none font-bold"
-              >
-                <option value="USER">USER (Standard Member)</option>
-                <option value="ADMIN">ADMIN (Full Dashboard Access)</option>
-                <option value="SUPERADMIN">SUPERADMIN (Owner)</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold shadow-xs transition"
-            >
-              {submitting ? 'Saving...' : 'Save to DB'}
-            </button>
-          </div>
-        </form>
 
-        {/* Filter Tabs */}
-        <div className="mt-4 flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => setFilterRole('ALL')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                filterRole === 'ALL'
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              All ({accounts.length})
-            </button>
-            <button
-              onClick={() => setFilterRole('ADMIN')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
-                filterRole === 'ADMIN'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-              }`}
-            >
-              <Shield className="w-3 h-3" />
-              <span>Admins ({adminCount})</span>
-            </button>
-            <button
-              onClick={() => setFilterRole('USER')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
-                filterRole === 'USER'
-                  ? 'bg-slate-700 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <User className="w-3 h-3" />
-              <span>Users ({userCount})</span>
-            </button>
+          <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setFilterRole('ALL')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                  filterRole === 'ALL'
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                All ({accounts.length})
+              </button>
+              <button
+                onClick={() => setFilterRole('ADMIN')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                  filterRole === 'ADMIN'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                }`}
+              >
+                <Shield className="w-3 h-3" />
+                <span>Admins ({adminCount})</span>
+              </button>
+              <button
+                onClick={() => setFilterRole('USER')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                  filterRole === 'USER'
+                    ? 'bg-slate-700 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <User className="w-3 h-3" />
+                <span>Users ({userCount})</span>
+              </button>
+            </div>
+            <span className="text-[11px] text-slate-400 font-medium">
+              Neon PostgreSQL
+            </span>
           </div>
-          <span className="text-[11px] text-slate-400 font-medium">
-            Auto-synced on login
-          </span>
         </div>
 
         {/* Accounts List */}
@@ -276,15 +183,15 @@ export default function AdminTeamModal({ onClose, currentEmail }: AdminTeamModal
             <div className="p-6 text-center text-xs text-slate-400">Loading database accounts...</div>
           ) : filteredAccounts.length === 0 ? (
             <div className="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
-              No accounts found in this category.
+              No accounts found matching your query.
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto rounded-xl border border-slate-200">
+            <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto rounded-xl border border-slate-200">
               {filteredAccounts.map((acc) => {
                 const isCurrent = acc.email.toLowerCase() === currentEmail?.toLowerCase();
                 const isUser = acc.role === 'USER';
                 const isSuperAdmin = acc.role === 'SUPERADMIN';
-                const isUpdating = updatingEmail === acc.email;
+                const isCopied = copiedSql === acc.email;
 
                 return (
                   <div
@@ -339,42 +246,29 @@ export default function AdminTeamModal({ onClose, currentEmail }: AdminTeamModal
                       </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-1 shrink-0">
-                      {/* Promote to Admin or Demote to User */}
-                      {!isCurrent && (
-                        <>
-                          {isUser ? (
-                            <button
-                              onClick={() => handleRoleChange(acc.email, 'ADMIN')}
-                              disabled={isUpdating}
-                              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[10px] font-bold border border-blue-200 transition"
-                              title="Promote to Admin"
-                            >
-                              <ArrowUpRight className="w-3 h-3" />
-                              <span>Make Admin</span>
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleRoleChange(acc.email, 'USER')}
-                              disabled={isUpdating}
-                              className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold border border-slate-300 transition"
-                              title="Demote to standard User"
-                            >
-                              <ArrowDownRight className="w-3 h-3" />
-                              <span>Make User</span>
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => handleDeleteAccount(acc.email)}
-                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                            title="Remove account from database"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </>
-                      )}
+                    {/* Copy SQL update query for quick DB execution */}
+                    <div className="shrink-0">
+                      <button
+                        onClick={() => handleCopySql(acc.email, isUser ? 'ADMIN' : 'USER')}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border transition ${
+                          isCopied
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                            : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
+                        }`}
+                        title="Copy SQL command to change role in Neon DB"
+                      >
+                        {isCopied ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-600" />
+                            <span>SQL Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3 text-slate-400" />
+                            <span>Copy DB SQL ({isUser ? '→ ADMIN' : '→ USER'})</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 );

@@ -6,15 +6,13 @@ export interface UserProfile {
   email: string;
   name: string | null;
   role: string;
-  isFirstAdmin?: boolean;
 }
 
 /**
  * Automatically syncs the currently logged-in Clerk user with Neon PostgreSQL DB.
- * - If user does not exist in DB:
- *     - If DB has 0 admins, they are created with role "ADMIN".
- *     - If DB already has admins, they are automatically created with role "USER".
- * - If user exists in DB, keeps their current role and updates name if modified.
+ * - Every new email logging in for the first time is ALWAYS created as 'USER' by default.
+ * - Changing roles between 'USER' and 'ADMIN' is controlled STRICTLY FROM THE DATABASE ONLY.
+ * - If user already exists in DB, their DB role is preserved intact.
  */
 export async function syncCurrentUserToDb(): Promise<{
   isAuthenticated: boolean;
@@ -50,13 +48,13 @@ export async function syncCurrentUserToDb(): Promise<{
       clerkUser.username ||
       'App User';
 
-    // Check if user already exists
+    // Check if user already exists in DB
     const existing = await prisma.adminUser.findUnique({
       where: { email: normalizedEmail },
     });
 
     if (existing) {
-      // Update name if changed
+      // Update name if changed in Clerk, but ALWAYS keep their database role as-is
       if (fullName && fullName !== existing.name) {
         const updated = await prisma.adminUser.update({
           where: { email: normalizedEmail },
@@ -83,15 +81,13 @@ export async function syncCurrentUserToDb(): Promise<{
       };
     }
 
-    // New user signing in: check total admin count in DB
-    const totalCount = await prisma.adminUser.count();
-    const assignedRole = totalCount === 0 ? 'ADMIN' : 'USER';
-
+    // New email logging in: ALWAYS create by default as 'USER'.
+    // Admin role can only be granted directly in the database.
     const created = await prisma.adminUser.create({
       data: {
         email: normalizedEmail,
         name: fullName,
-        role: assignedRole,
+        role: 'USER',
       },
     });
 
@@ -102,7 +98,6 @@ export async function syncCurrentUserToDb(): Promise<{
         email: created.email,
         name: created.name,
         role: created.role,
-        isFirstAdmin: assignedRole === 'ADMIN',
       },
     };
   } catch (err: any) {
@@ -116,8 +111,7 @@ export async function syncCurrentUserToDb(): Promise<{
 }
 
 /**
- * Verifies if the currently logged in Clerk user has ADMIN or SUPERADMIN privileges.
- * Automatically saves all logged in users into the database with appropriate roles.
+ * Verifies if the currently logged in Clerk user has ADMIN or SUPERADMIN privileges in the DB.
  */
 export async function verifyAdminStatus(): Promise<{
   isAuthenticated: boolean;
@@ -144,6 +138,6 @@ export async function verifyAdminStatus(): Promise<{
     adminProfile: user,
     error: isAdmin
       ? undefined
-      : `User ${user.email} is registered with role '${user.role}' in the database. Admin role is required to access the admin portal.`,
+      : `Account '${user.email}' is registered as '${user.role}' in the database. Admin role must be granted directly in the database.`,
   };
 }

@@ -352,7 +352,7 @@ export default function AdminDashboardPage() {
             </div>
             <p className="pt-2 text-[11px] text-slate-500 border-t border-slate-200">
               {isRegisteredUser
-                ? 'Your account has been saved in the Neon PostgreSQL database. An administrator can grant you full Admin Portal access from the Team Manager.'
+                ? 'Your account is registered as USER in the database. Role assignments are controlled strictly from the database. To access the Admin Portal, update the role column to ADMIN directly in your Neon PostgreSQL database.'
                 : 'Only accounts with the ADMIN role in the database can manage businesses and digital menus.'}
             </p>
           </div>
