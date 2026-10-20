@@ -7,14 +7,14 @@ export default function SignInPage() {
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/30 text-blue-300 text-xs font-semibold mb-3">
           <ShieldCheck className="w-4 h-4 text-blue-400" />
-          <span>Admin Portal Authentication</span>
+          <span>User &amp; Admin Sign In</span>
         </div>
         <h1 className="text-3xl font-black text-white tracking-tight flex items-center justify-center gap-2">
           <span>AI Review &amp; Menu Hub</span>
           <Sparkles className="w-5 h-5 text-amber-400" />
         </h1>
         <p className="text-sm text-slate-400 mt-1 max-w-sm">
-          Sign in to manage Google Place AI reviews, digital menus, and smart NFC/QR standees.
+          Sign in to access your account, manage reviews, or explore digital menus and smart standees.
         </p>
       </div>
 

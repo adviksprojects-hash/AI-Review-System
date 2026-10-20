@@ -311,25 +311,49 @@ export default function AdminDashboardPage() {
   }
 
   if (!authCheck.isAdmin) {
+    const isRegisteredUser = authCheck.profile?.role === 'USER';
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-3xl p-8 shadow-2xl text-center space-y-5 border border-slate-200">
-          <div className="w-16 h-16 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto shadow-sm">
-            <ShieldAlert className="w-9 h-9" />
+          <div
+            className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto shadow-sm ${
+              isRegisteredUser ? 'bg-amber-100 text-amber-600' : 'bg-red-100 text-red-600'
+            }`}
+          >
+            {isRegisteredUser ? <Users className="w-9 h-9" /> : <ShieldAlert className="w-9 h-9" />}
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-900">Access Restricted</h2>
+            <h2 className="text-2xl font-black text-slate-900">
+              {isRegisteredUser ? 'Registered as Member' : 'Access Restricted'}
+            </h2>
             <p className="text-xs text-slate-500 mt-1">
-              Database Admin Role Required
+              {isRegisteredUser ? 'Account Saved in PostgreSQL Database' : 'Database Admin Role Required'}
             </p>
           </div>
-          <div className="bg-red-50 p-4 rounded-xl border border-red-200 text-xs text-red-700 text-left leading-relaxed">
-            <p className="font-bold mb-1">Your account is not authorized in Neon DB:</p>
-            <p className="font-mono text-[11px] bg-white/80 p-1.5 rounded border border-red-200 truncate">
-              {authCheck.profile?.email || authCheck.error || 'User not registered in AdminUser table'}
-            </p>
-            <p className="mt-2 text-[11px] text-slate-600">
-              Only accounts with the <strong>ADMIN</strong> role in the Neon PostgreSQL database can manage businesses and digital menus.
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-700 text-left leading-relaxed space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-slate-500">Account:</span>
+              <span className="font-mono text-[11px] font-bold text-slate-900 truncate max-w-[200px]">
+                {authCheck.profile?.email || 'Authenticated User'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-slate-500">Database Role:</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
+                {authCheck.profile?.role || 'USER'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-slate-500">Database Status:</span>
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>Active in Database</span>
+              </span>
+            </div>
+            <p className="pt-2 text-[11px] text-slate-500 border-t border-slate-200">
+              {isRegisteredUser
+                ? 'Your account has been saved in the Neon PostgreSQL database. An administrator can grant you full Admin Portal access from the Team Manager.'
+                : 'Only accounts with the ADMIN role in the database can manage businesses and digital menus.'}
             </p>
           </div>
           <div className="pt-2 space-y-2">
@@ -342,7 +366,7 @@ export default function AdminDashboardPage() {
             </a>
             <SignOutButton>
               <button className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
-                Sign Out &amp; Use Authorized Admin Account
+                Sign Out
               </button>
             </SignOutButton>
           </div>

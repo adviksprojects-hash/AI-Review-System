@@ -21,10 +21,13 @@ import {
   Users,
 } from 'lucide-react';
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { syncCurrentUserToDb } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-export default function PublicHomePage() {
+export default async function PublicHomePage() {
+  const authSync = await syncCurrentUserToDb();
+  const isAdmin = authSync.user?.role === 'ADMIN' || authSync.user?.role === 'SUPERADMIN';
   return (
     <div className="min-h-screen bg-slate-900 text-white selection:bg-blue-600 selection:text-white font-sans">
       {/* Top Notification Bar */}
@@ -70,7 +73,7 @@ export default function PublicHomePage() {
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition"
               >
                 <ShieldCheck className="w-4 h-4" />
-                <span>Admin Portal</span>
+                <span>{isAdmin ? 'Admin Portal' : 'My Account (User)'}</span>
               </Link>
               <UserButton afterSignOutUrl="/" />
             </SignedIn>

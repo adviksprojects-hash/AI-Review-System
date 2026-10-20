@@ -1,7 +1,7 @@
 import { currentUser } from '@clerk/nextjs/server';
 import { getPrisma } from './storage';
 
-export interface AdminProfile {
+export interface UserProfile {
   id: string;
   email: string;
   name: string | null;
@@ -10,102 +10,140 @@ export interface AdminProfile {
 }
 
 /**
- * Verifies if the currently logged in Clerk user has an ADMIN role in Neon DB.
- * If the database has 0 admins (initial setup), the first logged in user is
- * automatically assigned the ADMIN role so the owner has seamless access.
+ * Automatically syncs the currently logged-in Clerk user with Neon PostgreSQL DB.
+ * - If user does not exist in DB:
+ *     - If DB has 0 admins, they are created with role "ADMIN".
+ *     - If DB already has admins, they are automatically created with role "USER".
+ * - If user exists in DB, keeps their current role and updates name if modified.
  */
-export async function verifyAdminStatus(): Promise<{
+export async function syncCurrentUserToDb(): Promise<{
   isAuthenticated: boolean;
-  isAdmin: boolean;
-  adminProfile: AdminProfile | null;
+  user: UserProfile | null;
   error?: string;
 }> {
   try {
-    const user = await currentUser();
-    if (!user) {
+    const clerkUser = await currentUser();
+    if (!clerkUser) {
       return {
         isAuthenticated: false,
-        isAdmin: false,
-        adminProfile: null,
+        user: null,
         error: 'Not authenticated with Clerk',
       };
     }
 
     const email =
-      user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)?.emailAddress ||
-      user.emailAddresses[0]?.emailAddress;
+      clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress ||
+      clerkUser.emailAddresses[0]?.emailAddress;
 
     if (!email) {
       return {
         isAuthenticated: true,
-        isAdmin: false,
-        adminProfile: null,
+        user: null,
         error: 'No email address found on user profile',
       };
     }
 
     const prisma = getPrisma();
     const normalizedEmail = email.toLowerCase().trim();
+    const fullName =
+      [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') ||
+      clerkUser.username ||
+      'App User';
 
-    // Check total admins in DB
-    const totalAdmins = await prisma.adminUser.count();
-
-    if (totalAdmins === 0) {
-      // First user to sign in becomes primary ADMIN in DB
-      const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || 'System Admin';
-      const newAdmin = await prisma.adminUser.create({
-        data: {
-          email: normalizedEmail,
-          name: fullName,
-          role: 'ADMIN',
-        },
-      });
-
-      return {
-        isAuthenticated: true,
-        isAdmin: true,
-        adminProfile: {
-          id: newAdmin.id,
-          email: newAdmin.email,
-          name: newAdmin.name,
-          role: newAdmin.role,
-          isFirstAdmin: true,
-        },
-      };
-    }
-
-    // Lookup user in Neon DB AdminUser table
-    const dbAdmin = await prisma.adminUser.findUnique({
+    // Check if user already exists
+    const existing = await prisma.adminUser.findUnique({
       where: { email: normalizedEmail },
     });
 
-    if (dbAdmin && (dbAdmin.role === 'ADMIN' || dbAdmin.role === 'SUPERADMIN')) {
+    if (existing) {
+      // Update name if changed
+      if (fullName && fullName !== existing.name) {
+        const updated = await prisma.adminUser.update({
+          where: { email: normalizedEmail },
+          data: { name: fullName },
+        });
+        return {
+          isAuthenticated: true,
+          user: {
+            id: updated.id,
+            email: updated.email,
+            name: updated.name,
+            role: updated.role,
+          },
+        };
+      }
       return {
         isAuthenticated: true,
-        isAdmin: true,
-        adminProfile: {
-          id: dbAdmin.id,
-          email: dbAdmin.email,
-          name: dbAdmin.name,
-          role: dbAdmin.role,
+        user: {
+          id: existing.id,
+          email: existing.email,
+          name: existing.name,
+          role: existing.role,
         },
       };
     }
 
-    // User authenticated in Clerk but NOT an admin in the database
+    // New user signing in: check total admin count in DB
+    const totalCount = await prisma.adminUser.count();
+    const assignedRole = totalCount === 0 ? 'ADMIN' : 'USER';
+
+    const created = await prisma.adminUser.create({
+      data: {
+        email: normalizedEmail,
+        name: fullName,
+        role: assignedRole,
+      },
+    });
+
     return {
       isAuthenticated: true,
-      isAdmin: false,
-      adminProfile: null,
-      error: 'User email is not registered with Admin privileges in the database.',
+      user: {
+        id: created.id,
+        email: created.email,
+        name: created.name,
+        role: created.role,
+        isFirstAdmin: assignedRole === 'ADMIN',
+      },
     };
   } catch (err: any) {
-    console.error('Error verifying admin status:', err);
+    console.error('Error syncing user to DB:', err);
+    return {
+      isAuthenticated: false,
+      user: null,
+      error: err?.message || 'Database error during user synchronization',
+    };
+  }
+}
+
+/**
+ * Verifies if the currently logged in Clerk user has ADMIN or SUPERADMIN privileges.
+ * Automatically saves all logged in users into the database with appropriate roles.
+ */
+export async function verifyAdminStatus(): Promise<{
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  adminProfile: UserProfile | null;
+  error?: string;
+}> {
+  const sync = await syncCurrentUserToDb();
+  if (!sync.isAuthenticated || !sync.user) {
     return {
       isAuthenticated: false,
       isAdmin: false,
       adminProfile: null,
-      error: err?.message || 'Database error during admin verification',
+      error: sync.error || 'Not authenticated with Clerk',
     };
   }
+
+  const { user } = sync;
+  const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
+
+  return {
+    isAuthenticated: true,
+    isAdmin,
+    adminProfile: user,
+    error: isAdmin
+      ? undefined
+      : `User ${user.email} is registered with role '${user.role}' in the database. Admin role is required to access the admin portal.`,
+  };
 }
