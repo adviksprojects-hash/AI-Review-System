@@ -98,7 +98,7 @@ export default function ReviewFlowClient({
     aspects: string[] = []
   ) => {
     // Immediate instant responsive update using dynamic fallback generator (0 ms latency)
-    const instantFallbacks = generateDynamicFallback(targetBusiness, targetRating, targetLang);
+    const instantFallbacks = generateDynamicFallback(targetBusiness, targetRating, targetLang, aspects);
     setReviewOptions(instantFallbacks);
     if (instantFallbacks.length > 0) {
       setSelectedOptionId(instantFallbacks[0].id);
@@ -401,12 +401,13 @@ export default function ReviewFlowClient({
               </h2>
             </div>
             <button
+              type="button"
               onClick={() => generateReviews(business, rating, language, selectedAspects)}
               disabled={generating}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 px-2.5 py-1 rounded-full border border-blue-200/60 transition active:scale-95 disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${generating ? 'animate-spin' : ''}`} />
-              <span>Regenerate AI</span>
+              <span>{generating ? 'Generating...' : 'Regenerate AI'}</span>
             </button>
           </div>
 
