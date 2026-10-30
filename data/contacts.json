@@ -1,0 +1,15 @@
+[
+  {
+    "id": "contact_sample_1",
+    "slug": "adviks-softech-pune",
+    "name": "ADVIKS Softech & Solutions",
+    "city": "Pune",
+    "whatsappNo": "+91 8600570542",
+    "instagramId": "adviks_softech",
+    "facebookId": "advikssoftech",
+    "youtubeId": "@advikssoftech",
+    "isActive": true,
+    "createdAt": "2026-10-30T09:48:12.802Z",
+    "updatedAt": "2026-10-30T09:48:12.805Z"
+  }
+]

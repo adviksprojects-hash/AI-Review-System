@@ -68,3 +68,19 @@ model AdminUser {
   @@index([email])
 }
 
+model ContactBusiness {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  city        String
+  whatsappNo  String?
+  instagramId String?
+  facebookId  String?
+  youtubeId   String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+}
+

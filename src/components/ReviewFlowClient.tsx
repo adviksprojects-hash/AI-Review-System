@@ -470,6 +470,17 @@ export default function ReviewFlowClient({
             </p>
           </div>
         </div>
+
+        {/* Footer Credit & Powered By ADVIKS Softech */}
+        <div className="text-center pt-6 pb-2 space-y-2 border-t border-slate-200/60">
+          <p className="text-xs font-bold text-slate-700">
+            {business.name} • {business.city}
+          </p>
+          <p className="text-[11px] text-slate-400">
+            Powered by{' '}
+            <span className="font-bold text-blue-600">ADVIKS Softech AI Review System</span>
+          </p>
+        </div>
       </div>
 
       {/* Thank You Modal for Restricted / Low Ratings (1-3 stars) */}

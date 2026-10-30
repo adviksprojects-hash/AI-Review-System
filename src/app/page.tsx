@@ -33,7 +33,7 @@ export default async function PublicHomePage() {
       {/* Top Notification Bar */}
       <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-4 py-2 text-center text-xs sm:text-sm font-semibold tracking-wide flex items-center justify-center gap-2">
         <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-        <span>Advik&apos;s Softech — Smart NFC &amp; QR Standees with Multi-Lingual AI Review Automation</span>
+        <span>ADVIKS Softech — Smart NFC &amp; QR Standees with Multi-Lingual AI Review Automation</span>
       </div>
 
       {/* Main Navbar */}
@@ -46,7 +46,7 @@ export default async function PublicHomePage() {
             </div>
             <div>
               <span className="text-lg font-black tracking-tight text-white flex items-center gap-1.5">
-                <span>Advik&apos;s Softech</span>
+                <span>ADVIKS Softech</span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
                   AI Review Hub
                 </span>
@@ -439,7 +439,7 @@ export default async function PublicHomePage() {
                 Order Your Custom Smart NFC Standee
               </h2>
               <p className="text-sm text-slate-300 mt-2">
-                Contact <strong className="text-white">Advik&apos;s Softech</strong> directly to order acrylic standees, setup your businesses, or schedule a quick walkthrough.
+                Contact <strong className="text-white">ADVIKS Softech</strong> directly to order acrylic standees, setup your businesses, or schedule a quick walkthrough.
               </p>
             </div>
 
@@ -513,7 +513,7 @@ export default async function PublicHomePage() {
               </div>
 
               <a
-                href="https://wa.me/918600570542?text=Hello%20Advik's%20Softech,%20I%20am%20interested%20in%20the%20Smart%20NFC%20Review%20and%20Digital%20Menu%20Standees."
+                href="https://wa.me/918600570542?text=Hello%20ADVIKS%20Softech,%20I%20am%20interested%20in%20the%20Smart%20NFC%20Review%20and%20Digital%20Menu%20Standees."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/25 transition whitespace-nowrap"
@@ -533,7 +533,7 @@ export default async function PublicHomePage() {
             <div className="w-6 h-6 rounded-lg bg-blue-600 flex items-center justify-center text-white">
               <Sparkles className="w-3.5 h-3.5" />
             </div>
-            <span className="font-bold text-white">Advik&apos;s Softech</span>
+            <span className="font-bold text-white">ADVIKS Softech</span>
             <span>•</span>
             <span>AI Review &amp; Digital Menu Platform</span>
           </div>
@@ -545,7 +545,7 @@ export default async function PublicHomePage() {
           </div>
 
           <p className="text-slate-400">
-            &copy; {new Date().getFullYear()} Advik&apos;s Softech. All rights reserved.
+            &copy; {new Date().getFullYear()} ADVIKS Softech. All rights reserved.
           </p>
         </div>
       </footer>

@@ -269,6 +269,17 @@ export default function CustomerMenuClient({
             })}
           </div>
         )}
+
+        {/* Footer Credit & Powered By ADVIKS Softech */}
+        <div className="text-center pt-8 pb-4 space-y-2 border-t border-slate-200/60">
+          <p className="text-xs font-bold text-slate-700">
+            {business.name} {business.city ? `• ${business.city}` : ''}
+          </p>
+          <p className="text-[11px] text-slate-400">
+            Powered by{' '}
+            <span className="font-bold text-amber-600">ADVIKS Softech Menu QR System</span>
+          </p>
+        </div>
       </main>
 
       {/* Fullscreen Lightbox / Zoom Modal */}

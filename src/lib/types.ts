@@ -103,3 +103,38 @@ export interface UpdateMenuBusinessInput {
   isActive?: boolean;
 }
 
+// Contact Us QR System Types
+export interface ContactBusiness {
+  id: string;
+  slug: string;
+  name: string;
+  city: string;
+  whatsappNo?: string;
+  instagramId?: string;
+  facebookId?: string;
+  youtubeId?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateContactBusinessInput {
+  name: string;
+  city: string;
+  whatsappNo?: string;
+  instagramId?: string;
+  facebookId?: string;
+  youtubeId?: string;
+  customSlug?: string;
+}
+
+export interface UpdateContactBusinessInput {
+  name?: string;
+  city?: string;
+  whatsappNo?: string;
+  instagramId?: string;
+  facebookId?: string;
+  youtubeId?: string;
+  isActive?: boolean;
+}
+

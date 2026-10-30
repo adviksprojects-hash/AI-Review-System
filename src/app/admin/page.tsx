@@ -23,17 +23,19 @@ import {
   Search,
   Building,
   UtensilsCrossed,
+  MessageCircle,
 } from 'lucide-react';
 import { Business, CreateBusinessInput, UpdateBusinessInput } from '@/lib/types';
 import PrintableStandee from '@/components/PrintableStandee';
 import MenuSection from '@/components/MenuSection';
+import ContactSection from '@/components/ContactSection';
 import AdminTeamModal from '@/components/AdminTeamModal';
 import { generateQrDataUrl } from '@/lib/qrcode';
 import { UserButton, SignOutButton } from '@clerk/nextjs';
 import { ShieldCheck, ShieldAlert, Users } from 'lucide-react';
 
 export default function AdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState<'reviews' | 'menus'>('reviews');
+  const [activeTab, setActiveTab] = useState<'reviews' | 'menus' | 'contacts'>('reviews');
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -445,6 +447,17 @@ export default function AdminDashboardPage() {
                 <UtensilsCrossed className="w-3.5 h-3.5 text-amber-600" />
                 <span>Menu QR System</span>
               </button>
+              <button
+                onClick={() => setActiveTab('contacts')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition ${
+                  activeTab === 'contacts'
+                    ? 'bg-white text-emerald-800 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Contact Us QR</span>
+              </button>
             </div>
 
             {activeTab === 'reviews' && (
@@ -476,6 +489,8 @@ export default function AdminDashboardPage() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {activeTab === 'menus' ? (
           <MenuSection />
+        ) : activeTab === 'contacts' ? (
+          <ContactSection />
         ) : (
           <>
             {/* System Capabilities & Setup Banner */}

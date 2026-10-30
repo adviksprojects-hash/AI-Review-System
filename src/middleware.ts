@@ -7,17 +7,19 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up(.*)',
   '/r/(.*)',
   '/m/(.*)',
+  '/c/(.*)',
   '/api/reviews/(.*)',
   '/api/qr(.*)',
 ]);
 
 export default clerkMiddleware((auth, request) => {
-  // Allow public GET requests for single business or single menu by slug/ID
-  // so customer review pages (/r/[slug]) and customer menu pages (/m/[slug]) work without login
+  // Allow public GET requests for single business, single menu, or single contact by slug/ID
+  // so customer review pages (/r/[slug]), customer menu pages (/m/[slug]), and contact pages (/c/[slug]) work without login
   const isPublicGetApi =
     request.method === 'GET' &&
     (request.nextUrl.pathname.startsWith('/api/businesses/') ||
-      request.nextUrl.pathname.startsWith('/api/menus/'));
+      request.nextUrl.pathname.startsWith('/api/menus/') ||
+      request.nextUrl.pathname.startsWith('/api/contacts/'));
 
   if (!isPublicRoute(request) && !isPublicGetApi) {
     auth().protect();
