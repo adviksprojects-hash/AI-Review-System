@@ -277,7 +277,15 @@ export default function CustomerMenuClient({
           </p>
           <p className="text-[11px] text-slate-400">
             Powered by{' '}
-            <span className="font-bold text-amber-600">ADVIKS Softech Menu QR System</span>
+            <a
+              href="https://advikssoftech.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-amber-600 hover:text-amber-700 hover:underline transition inline-block"
+            >
+              ADVIKS Softech
+            </a>{' '}
+            Menu QR System
           </p>
         </div>
       </main>

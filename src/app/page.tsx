@@ -533,7 +533,14 @@ export default async function PublicHomePage() {
             <div className="w-6 h-6 rounded-lg bg-blue-600 flex items-center justify-center text-white">
               <Sparkles className="w-3.5 h-3.5" />
             </div>
-            <span className="font-bold text-white">ADVIKS Softech</span>
+            <a
+              href="https://advikssoftech.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-white hover:text-blue-400 hover:underline transition"
+            >
+              ADVIKS Softech
+            </a>
             <span>•</span>
             <span>AI Review &amp; Digital Menu Platform</span>
           </div>
@@ -545,7 +552,16 @@ export default async function PublicHomePage() {
           </div>
 
           <p className="text-slate-400">
-            &copy; {new Date().getFullYear()} ADVIKS Softech. All rights reserved.
+            &copy; {new Date().getFullYear()}{' '}
+            <a
+              href="https://advikssoftech.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-300 hover:text-white hover:underline transition"
+            >
+              ADVIKS Softech
+            </a>
+            . All rights reserved.
           </p>
         </div>
       </footer>

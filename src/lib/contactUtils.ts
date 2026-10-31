@@ -41,3 +41,37 @@ export function formatYouTubeUrl(rawId?: string): string | null {
   const handle = clean.startsWith('@') ? clean : `@${clean}`;
   return `https://youtube.com/${handle}`;
 }
+
+export function getDisplayInstagram(rawHandle?: string | null): string {
+  if (!rawHandle || !rawHandle.trim()) return 'Follow Us';
+  let val = rawHandle.trim();
+  val = val.replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/$/, '');
+  val = val.replace(/^@/, '');
+  return val ? `@${val}` : 'Follow Us';
+}
+
+export function getDisplayYouTube(rawId?: string | null): string {
+  if (!rawId || !rawId.trim()) return 'Watch Channel';
+  let val = rawId.trim();
+  val = val.replace(/^https?:\/\/(www\.)?youtube\.com\//i, '').replace(/\/$/, '');
+  if (val.startsWith('@')) return val;
+  if (val.startsWith('c/') || val.startsWith('channel/')) {
+    const part = val.split('/')[1];
+    return part ? `@${part}` : '@channel';
+  }
+  return `@${val}`;
+}
+
+export function getDisplayFacebook(rawId?: string | null): string {
+  if (!rawId || !rawId.trim()) return 'Official Page';
+  let val = rawId.trim();
+  val = val.replace(/^https?:\/\/(www\.)?facebook\.com\//i, '').replace(/\/$/, '');
+  if (val.startsWith('profile.php') || val.startsWith('share/')) return 'Official Page';
+  return val.length > 25 ? `${val.slice(0, 22)}...` : val;
+}
+
+export function getDisplayWhatsApp(rawPhone?: string | null): string {
+  if (!rawPhone || !rawPhone.trim()) return 'Direct Chat';
+  return rawPhone.trim();
+}
+

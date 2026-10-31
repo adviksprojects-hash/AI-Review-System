@@ -478,7 +478,15 @@ export default function ReviewFlowClient({
           </p>
           <p className="text-[11px] text-slate-400">
             Powered by{' '}
-            <span className="font-bold text-blue-600">ADVIKS Softech AI Review System</span>
+            <a
+              href="https://advikssoftech.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition inline-block"
+            >
+              ADVIKS Softech
+            </a>{' '}
+            AI Review System
           </p>
         </div>
       </div>
